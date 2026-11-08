@@ -4,6 +4,7 @@ import argparse
 BrcStk = []
 kvpStk = []
 strStk = []
+arrStk = []
 INVALID_SYMBOL = object()
 
 def is_integer_string(value):
@@ -34,6 +35,7 @@ def symbol(sym):
 
 def parseJSON(text):
     obj = 0
+    active = {}
     isStr = False
     latest = ''
     i = 0
@@ -44,6 +46,11 @@ def parseJSON(text):
         if text[i] == '{':
             if obj == 0:
                 obj = symbol(text[i])
+                BrcStk.append('{')
+            else:
+                if kvpStk[-1] != ':': return 0
+                currObj = symbol(text[i])
+                kvpStk.append(currObj)
                 BrcStk.append('{')
         elif text[i] in ['}', ',']:
             if len(BrcStk) == 0: return 0
@@ -56,9 +63,20 @@ def parseJSON(text):
                 kvpStk.pop()
                 if len(kvpStk) == 0 or len(BrcStk) == 1:
                     obj[key] = val
+                else:
+                    kvpStk[-1][key] = val
             if text[i] == '}': 
                 if latest != ',': BrcStk.pop(0)
                 else: return 0
+        elif text[i] == '[':
+            if kvpStk[-1] != ':': return 0
+            arr = symbol(text[i])
+            kvpStk.append(arr)
+            arrStk.append('[')
+        elif text[i] == ']':
+            if len(arrStk) == 0:
+                return 0
+            arrStk.pop()
         elif text[i] == '\"':
             if len(BrcStk) == 0 or obj == 0: return 0
             if len(strStk) == 0:
@@ -74,7 +92,7 @@ def parseJSON(text):
             kvpStk.append(text[i])
         elif text[i].isdigit() or text[i].isalpha():
             if isStr == False:
-                if kvpStk[-1] != ':': return 0
+                if len(kvpStk) > 0 and kvpStk[-1] != ':': return 0
                 var = ''
                 j = i
                 while text[j] not in [',', '}', ' ']:
@@ -83,15 +101,18 @@ def parseJSON(text):
                 sym = symbol(var)
                 if sym is INVALID_SYMBOL: return 0
                 kvpStk.append(sym)
-                i = i + len(var)
+                i = i + len(var) - 1
             else:
                 if len(kvpStk[-1]) == 0 and text[i].isdigit(): return 0
                 if not isinstance(kvpStk[-1], str) : return 0
                 kvpStk[-1] += text[i]
+        else:
+            if len(kvpStk) > 0 and kvpStk[-1] != ':' and isStr == True:
+                kvpStk[-1] += text[i]
         latest = text[i]
         print(kvpStk)
         i = i + 1
-
+# TODO: This skips dashes too, so add in logic for that too
     return obj
 
 def main(filepath):
