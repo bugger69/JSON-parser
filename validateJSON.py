@@ -56,7 +56,7 @@ def parseJSON(text):
                 cmbStk.append(kvpStk[-1])
         elif text[i] in ['}', ',']:
             if len(BrcStk) == 0 or len(cmbStk) == 0: return 0
-            if isinstance(cmbStk[-1], dict):
+            if len(cmbStk) > 0 and isinstance(cmbStk[-1], dict):
                 if len(kvpStk) > 0:
                     val = kvpStk[-1]
                     kvpStk.pop()
@@ -68,7 +68,7 @@ def parseJSON(text):
                         obj[key] = val
                     else:
                         kvpStk[-1][key] = val
-            elif isinstance(cmbStk[-1], list):
+            elif len(cmbStk) > 0 and isinstance(cmbStk[-1], list):
                 val = arrStk[-1]
                 arrStk.pop()
             if text[i] == '}': 
@@ -90,9 +90,9 @@ def parseJSON(text):
             if len(strStk) == 0:
                 strn = symbol(text[i])
                 isStr = True
-                if isinstance(cmbStk[-1], dict):
+                if len(cmbStk) > 0 and isinstance(cmbStk[-1], dict):
                     kvpStk.append(strn)
-                elif isinstance(cmbStk[-1], list):
+                elif len(cmbStk) > 0 and isinstance(cmbStk[-1], list):
                     arrStk.append(strn)
                 strStk.append('\"')
             else:
@@ -100,9 +100,9 @@ def parseJSON(text):
                 strStk.pop()
         elif text[i] == ':':
             if len(kvpStk) == 0: return 0
-            if isinstance(cmbStk[-1], dict):
+            if len(cmbStk) > 0 and isinstance(cmbStk[-1], dict):
                 kvpStk.append(text[i])
-            elif isinstance(cmbStk[-1], list):
+            elif len(cmbStk) > 0 and isinstance(cmbStk[-1], list):
                 arrStk.append(text[i])
         elif text[i].isdigit() or text[i].isalpha():
             if isStr == False:
@@ -118,24 +118,24 @@ def parseJSON(text):
                 if sym is INVALID_SYMBOL: 
                     print("Invalid Symbol")
                     return 0
-                if isinstance(cmbStk[-1], dict):
+                if len(cmbStk) > 0 and isinstance(cmbStk[-1], dict):
                     kvpStk.append(sym)
-                elif isinstance(cmbStk[-1], list):
+                elif len(cmbStk) > 0 and isinstance(cmbStk[-1], list):
                     arrStk.append(sym)
                 i = i + len(var) - 1
             else:
                 if len(kvpStk[-1]) == 0 and text[i].isdigit(): return 0
-                if isinstance(cmbStk[-1], dict) and not isinstance(kvpStk[-1], str) : return 0
-                if isinstance(cmbStk[-1], dict):
+                if len(cmbStk) > 0 and isinstance(cmbStk[-1], dict) and not isinstance(kvpStk[-1], str) : return 0
+                if len(cmbStk) > 0 and isinstance(cmbStk[-1], dict):
                     kvpStk[-1] += text[i]
-                elif isinstance(cmbStk[-1], list):
+                elif len(cmbStk) > 0 and isinstance(cmbStk[-1], list):
                     arrStk[-1] += text[i]
         else:
-            if isinstance(cmbStk[-1], dict):
+            if len(cmbStk) > 0 and isinstance(cmbStk[-1], dict):
                 if len(kvpStk) > 0 and kvpStk[-1] != ':' and isStr == True:
-                    if isinstance(cmbStk[-1], dict):
+                    if len(cmbStk) > 0 and isinstance(cmbStk[-1], dict):
                         kvpStk[-1] += text[i]
-                    elif isinstance(cmbStk[-1], list):
+                    elif len(cmbStk) > 0 and isinstance(cmbStk[-1], list):
                         arrStk[-1] += text[i]
         latest = text[i]
         print(kvpStk)
