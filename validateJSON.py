@@ -4,29 +4,48 @@ import argparse
 BrcStk = []
 kvpStk = []
 strStk = []
+INVALID_SYMBOL = object()
+
+def is_integer_string(value):
+    try:
+        int(value)
+        return True
+    except ValueError:
+        return False
 
 def symbol(sym):
     if sym == "{":
         return {}
-    if sym == "[":
+    elif sym == "[":
         return []
-    if sym == "\"":
+    elif sym == "\"":
         return ""
+    elif sym == "true":
+        return True
+    elif sym == "false":
+        return False
+    elif sym == "null":
+        return None
+    elif is_integer_string(sym):
+        return int(sym)
+    else:
+        return INVALID_SYMBOL
 
 
 def parseJSON(text):
     obj = 0
     isStr = False
-    latest = 0
+    latest = ''
+    i = 0
     if len(text) == 0 or text[0] != '{':
         return 0
-    for s in text:
-        # print(s)
-        if s == '{':
+    while i < len(text):
+        print(text[i])
+        if text[i] == '{':
             if obj == 0:
-                obj = symbol(s)
+                obj = symbol(text[i])
                 BrcStk.append('{')
-        elif s in ['}', ',']:
+        elif text[i] in ['}', ',']:
             if len(BrcStk) == 0: return 0
             if len(kvpStk) > 0:
                 val = kvpStk[-1]
@@ -37,29 +56,41 @@ def parseJSON(text):
                 kvpStk.pop()
                 if len(kvpStk) == 0 or len(BrcStk) == 1:
                     obj[key] = val
-            if s == '}': 
+            if text[i] == '}': 
                 if latest != ',': BrcStk.pop(0)
                 else: return 0
-        elif s == '\"':
+        elif text[i] == '\"':
             if len(BrcStk) == 0 or obj == 0: return 0
             if len(strStk) == 0:
-                strn = symbol(s)
+                strn = symbol(text[i])
                 isStr = True
                 kvpStk.append(strn)
                 strStk.append('\"')
             else:
                 isStr = False
                 strStk.pop()
-        elif s == ':':
+        elif text[i] == ':':
             if len(kvpStk) == 0: return 0
-            kvpStk.append(s)
-        elif s.isdigit() or s.isalpha():
-            if isStr == False: return 0
-            if len(kvpStk[-1]) == 0 and s.isdigit(): return 0
-            if not isinstance(kvpStk[-1], str) : return 0
-            kvpStk[-1] += s
-        latest = s
+            kvpStk.append(text[i])
+        elif text[i].isdigit() or text[i].isalpha():
+            if isStr == False:
+                if kvpStk[-1] != ':': return 0
+                var = ''
+                j = i
+                while text[j] not in [',', '}', ' ']:
+                    var += text[j]
+                    j = j + 1
+                sym = symbol(var)
+                if sym is INVALID_SYMBOL: return 0
+                kvpStk.append(sym)
+                i = i + len(var)
+            else:
+                if len(kvpStk[-1]) == 0 and text[i].isdigit(): return 0
+                if not isinstance(kvpStk[-1], str) : return 0
+                kvpStk[-1] += text[i]
+        latest = text[i]
         print(kvpStk)
+        i = i + 1
 
     return obj
 
