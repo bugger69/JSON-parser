@@ -158,3 +158,4 @@ if __name__ == "__main__":
     parser.add_argument("filepath")
     args = parser.parse_args()
     main(args.filepath)
+# TODO: Reduce the number of stacks
